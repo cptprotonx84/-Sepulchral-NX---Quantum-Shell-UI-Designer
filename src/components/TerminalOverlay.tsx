@@ -1,0 +1,222 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React from 'react';
+import { TerminalTheme } from '../types';
+
+interface TerminalOverlayProps {
+  theme: TerminalTheme;
+  crtScanlines: boolean;
+  chromaticAberration: boolean;
+  vignette: boolean;
+  noiseLevel: number;
+}
+
+export const THEME_PALETTES = {
+  nightfly: {
+    primary: '#05ffa1',
+    glow: 'rgba(5, 255, 161, 0.4)',
+    glowLight: 'rgba(5, 255, 161, 0.15)',
+    bg: '#090d10',
+    text: 'text-emerald-400',
+    border: 'border-emerald-500/30',
+    borderActive: 'border-emerald-400',
+    title: 'NIGHTFLY // ACTIVE_VECTOR',
+    accent: '#05ffa1',
+    radialGradient: 'radial-gradient(circle, rgba(5,255,161,0.08) 0%, rgba(9,13,16,1) 90%)'
+  },
+  mire: {
+    primary: '#ffb000',
+    glow: 'rgba(255, 176, 0, 0.45)',
+    glowLight: 'rgba(255, 176, 0, 0.15)',
+    bg: '#100c08',
+    text: 'text-amber-500',
+    border: 'border-amber-500/30',
+    borderActive: 'border-amber-400',
+    title: 'THE M.I.R.E. // FORGOTTEN_RECORDS',
+    accent: '#f59e0b',
+    radialGradient: 'radial-gradient(circle, rgba(245,158,11,0.08) 0%, rgba(16,12,8,1) 90%)'
+  },
+  nephila: {
+    primary: '#c084fc',
+    glow: 'rgba(192, 132, 252, 0.45)',
+    glowLight: 'rgba(192, 132, 252, 0.15)',
+    bg: '#0a0714',
+    text: 'text-purple-400',
+    border: 'border-purple-500/30',
+    borderActive: 'border-purple-400',
+    title: 'NEPHILA SYSTEMS // EXTERNAL_INTELLIGENCE',
+    accent: '#a855f7',
+    radialGradient: 'radial-gradient(circle, rgba(168,85,247,0.08) 0%, rgba(10,7,20,1) 90%)'
+  },
+  sepulchre: {
+    primary: '#ffffff',
+    glow: 'rgba(255, 255, 255, 0.25)',
+    glowLight: 'rgba(255, 255, 255, 0.08)',
+    bg: '#0a0a0c',
+    text: 'text-slate-200',
+    border: 'border-slate-800',
+    borderActive: 'border-slate-400',
+    title: 'THE SEPULCHRE // REJECTED_LOSS',
+    accent: '#cbd5e1',
+    radialGradient: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(10,10,12,1) 90%)'
+  },
+  sepulchral_nx: {
+    primary: '#ef4444',
+    glow: 'rgba(239, 68, 68, 0.45)',
+    glowLight: 'rgba(239, 68, 68, 0.15)',
+    bg: '#0c0a0a',
+    text: 'text-red-500',
+    border: 'border-red-500/30',
+    borderActive: 'border-red-400',
+    title: 'SEPULCHRAL{NX} // MACHINE_CODE_DRIFT',
+    accent: '#ef4444',
+    radialGradient: 'radial-gradient(circle, rgba(239,68,68,0.08) 0%, rgba(12,10,10,1) 90%)'
+  }
+};
+
+export const TerminalOverlay: React.FC<TerminalOverlayProps> = ({
+  theme,
+  crtScanlines,
+  chromaticAberration,
+  vignette,
+  noiseLevel
+}) => {
+  const palette = THEME_PALETTES[theme];
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+      {/* Dynamic scanlines layout */}
+      {crtScanlines && (
+        <div 
+          className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
+          style={{
+            backgroundImage: `repeating-linear-gradient(0deg, #000 0px, #000 1px, transparent 1px, transparent 3px)`,
+          }}
+        />
+      )}
+
+      {/* Retro horizontal scrolling beam scanner */}
+      {crtScanlines && (
+        <div 
+          className="scanline-bar absolute left-0 right-0 h-10 opacity-[0.04] pointer-events-none"
+          style={{
+            background: `linear-gradient(to bottom, transparent, ${palette.primary}, transparent)`,
+            animation: 'scanline 8s linear infinite',
+          }}
+        />
+      )}
+
+      {/* Ambient noise simulation */}
+      {noiseLevel > 0 && (
+        <div 
+          className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)]"
+          style={{
+            backgroundSize: '3px 3px',
+            opacity: noiseLevel / 2000,
+          }}
+        />
+      )}
+
+      {/* Classic Vignette shading frame */}
+      {vignette && (
+        <div 
+          className="absolute inset-0 pointer-events-none shadow-[inset_0_0_80px_rgba(0,0,0,0.85)]"
+          style={{
+            boxShadow: `inset 0 0 100px rgba(0,0,0,0.85), inset 0 0 40px ${palette.glowLight}`,
+          }}
+        />
+      )}
+
+      {/* Screen tint & background ambient glow */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          background: `radial-gradient(circle, ${palette.primary} 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* Chromatic aberration glass tint overlay if enabled */}
+      {chromaticAberration && (
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-screen"
+          style={{
+            background: `radial-gradient(circle, transparent 40%, rgba(255,0,0,0.4) 80%, rgba(0,0,255,0.4) 100%)`,
+          }}
+        />
+      )}
+
+      <style>{`
+        @keyframes scanline {
+          0% { top: -10%; }
+          100% { top: 110%; }
+        }
+        .retro-flicker {
+          animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker {
+          0% { opacity: 0.98; }
+          50% { opacity: 1; }
+          100% { opacity: 0.99; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+// Cyber Frame helper function for styling custom sci-fi divs
+export const CyberFrame: React.FC<{
+  children: React.ReactNode;
+  theme: TerminalTheme;
+  title?: string;
+  subTitle?: string;
+  className?: string;
+  onHeaderClick?: () => void;
+  id?: string;
+}> = ({ children, theme, title, subTitle, className = '', onHeaderClick, id }) => {
+  const palette = THEME_PALETTES[theme];
+
+  return (
+    <div 
+      id={id}
+      className={`relative border bg-[rgba(5,10,15,0.45)] backdrop-blur-md rounded transition-all duration-300 flex flex-col overflow-hidden group ${palette.border} ${className}`}
+      style={{
+        boxShadow: `0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px ${palette.glowLight}`,
+      }}
+    >
+      {/* Tech corner notches */}
+      <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+      <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+      <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+      <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+
+      {/* Panel header */}
+      {(title || subTitle) && (
+        <div 
+          onClick={onHeaderClick}
+          className={`px-3 py-1.5 border-b flex items-center justify-between bg-black/40 cursor-default select-none ${palette.border} text-xs font-mono`}
+        >
+          <div className="flex items-center space-x-2">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: palette.primary }}></span>
+            <span className="font-semibold tracking-wider uppercase text-slate-300 group-hover:text-white transition-colors">
+              {title}
+            </span>
+          </div>
+          {subTitle && (
+            <span className="text-[10px] opacity-40 font-mono tracking-widest">{subTitle}</span>
+          )}
+        </div>
+      )}
+
+      {/* Grid overlay dot background */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)]" style={{ backgroundSize: '16px 16px' }} />
+
+      {/* Inner Content */}
+      <div className="relative p-3 flex-1 flex flex-col overflow-auto">
+        {children}
+      </div>
+    </div>
+  );
+};

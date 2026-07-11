@@ -1,0 +1,6 @@
+{
+  "name": "Quantum Shell UI Designer",
+  "description": "A futuristic sci-fi terminal-styled desktop UI shell planner, layout designer, and modular prototyping engine featuring real-time grid adjustments, custom icon integration, scripting, and advanced color-grading controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
