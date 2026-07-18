@@ -28,6 +28,22 @@ interface ControlPanelProps {
   setAcousticFeedback: (val: boolean) => void;
   displayMode: 'single' | 'dual' | 'triple';
   setDisplayMode: (m: 'single' | 'dual' | 'triple') => void;
+  layoutConfig?: {
+    showControlPanel: boolean;
+    showGridDesigner: boolean;
+    showVectorEditor: boolean;
+    showScriptingConsole: boolean;
+    showIconIntegrator: boolean;
+    showExportSyncPanel: boolean;
+  };
+  setLayoutConfig?: React.Dispatch<React.SetStateAction<{
+    showControlPanel: boolean;
+    showGridDesigner: boolean;
+    showVectorEditor: boolean;
+    showScriptingConsole: boolean;
+    showIconIntegrator: boolean;
+    showExportSyncPanel: boolean;
+  }>>;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -40,7 +56,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   acousticFeedback,
   setAcousticFeedback,
   displayMode,
-  setDisplayMode
+  setDisplayMode,
+  layoutConfig,
+  setLayoutConfig
 }) => {
   const palette = THEME_PALETTES[theme];
   const [activeTab, setActiveTab] = useState<'analog' | 'grid' | 'display'>('analog');
@@ -535,6 +553,90 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 )}
               </div>
             </div>
+
+            {/* PANEL VISIBILITY CONTROL MANAGER */}
+            {layoutConfig && setLayoutConfig && (
+              <div className="border border-slate-800 bg-black/40 p-2.5 rounded space-y-3">
+                <span className="text-[10px] tracking-widest text-slate-400 uppercase block font-bold">WORKSPACE COMPONENT DECK</span>
+                
+                <p className="text-[8px] text-slate-500 uppercase leading-relaxed">Tweak component layout to maximize available screen space depending on monitor size.</p>
+                
+                <div className="space-y-2">
+                  {[
+                    { key: 'showControlPanel', label: 'SYSTEM REGULATOR' },
+                    { key: 'showGridDesigner', label: 'GRID MATRIX DESIGNER' },
+                    { key: 'showVectorEditor', label: 'GRAPHIC SHAPER' },
+                    { key: 'showScriptingConsole', label: 'SCRIPTING CONSOLE' },
+                    { key: 'showIconIntegrator', label: 'GLYPH COMPILER' },
+                    { key: 'showExportSyncPanel', label: 'BLUEPRINT DEPLOYMENT' }
+                  ].map((panel) => {
+                    const isVisible = (layoutConfig as any)[panel.key];
+                    return (
+                      <div key={panel.key} className="flex items-center justify-between text-[10px]">
+                        <span className={isVisible ? 'text-slate-200' : 'text-slate-500 line-through'}>
+                          {panel.label}
+                        </span>
+                        <button
+                          onClick={() => {
+                            playSwitch();
+                            setLayoutConfig(prev => ({
+                              ...prev,
+                              [panel.key]: !isVisible
+                            }));
+                          }}
+                          className={`px-2 py-0.5 border text-[8px] font-bold rounded transition-colors uppercase cursor-pointer ${
+                            isVisible 
+                              ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-400'
+                              : 'border-slate-800 bg-slate-900/40 text-slate-500'
+                          }`}
+                        >
+                          {isVisible ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Preset quick buttons */}
+                <div className="pt-2 border-t border-slate-800/40 space-y-1.5">
+                  <span className="text-[8px] text-slate-500 block uppercase font-bold">PRESET CALIBRATIONS</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      onClick={() => {
+                        playSwitch();
+                        setLayoutConfig({
+                          showControlPanel: true,
+                          showGridDesigner: true,
+                          showVectorEditor: true,
+                          showScriptingConsole: true,
+                          showIconIntegrator: true,
+                          showExportSyncPanel: true
+                        });
+                      }}
+                      className="py-1 border border-slate-800 text-[8px] text-slate-300 hover:text-white rounded uppercase cursor-pointer font-mono"
+                    >
+                      Show All
+                    </button>
+                    <button
+                      onClick={() => {
+                        playSwitch();
+                        setLayoutConfig({
+                          showControlPanel: true,
+                          showGridDesigner: true,
+                          showVectorEditor: false,
+                          showScriptingConsole: false,
+                          showIconIntegrator: false,
+                          showExportSyncPanel: false
+                        });
+                      }}
+                      className="py-1 border border-slate-800 text-[8px] text-slate-300 hover:text-white rounded uppercase cursor-pointer font-mono"
+                    >
+                      Grid Focus
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

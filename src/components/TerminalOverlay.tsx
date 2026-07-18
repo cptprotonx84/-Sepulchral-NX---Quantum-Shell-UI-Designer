@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TerminalTheme } from '../types';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface TerminalOverlayProps {
   theme: TerminalTheme;
@@ -166,7 +167,7 @@ export const TerminalOverlay: React.FC<TerminalOverlayProps> = ({
   );
 };
 
-// Cyber Frame helper function for styling custom sci-fi divs
+// Cyber Frame helper function for styling custom sci-fi divs with collapse and resize behaviors
 export const CyberFrame: React.FC<{
   children: React.ReactNode;
   theme: TerminalTheme;
@@ -175,8 +176,73 @@ export const CyberFrame: React.FC<{
   className?: string;
   onHeaderClick?: () => void;
   id?: string;
-}> = ({ children, theme, title, subTitle, className = '', onHeaderClick, id }) => {
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+  resizable?: boolean;
+  defaultHeight?: number;
+}> = ({ 
+  children, 
+  theme, 
+  title, 
+  subTitle, 
+  className = '', 
+  onHeaderClick, 
+  id,
+  collapsible = true,
+  defaultCollapsed = false,
+  resizable = true,
+  defaultHeight
+}) => {
   const palette = THEME_PALETTES[theme];
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [height, setHeight] = useState<number | undefined>(defaultHeight);
+
+  const toggleCollapse = () => {
+    if (!collapsible) return;
+    setIsCollapsed(!isCollapsed);
+    if (onHeaderClick) {
+      onHeaderClick();
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startHeight = height || defaultHeight || 250;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(100, startHeight + deltaY);
+      setHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const startY = e.touches[0].clientY;
+    const startHeight = height || defaultHeight || 250;
+
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      const deltaY = moveEvent.touches[0].clientY - startY;
+      const newHeight = Math.max(100, startHeight + deltaY);
+      setHeight(newHeight);
+    };
+
+    const handleTouchEnd = () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+  };
 
   return (
     <div 
@@ -184,19 +250,25 @@ export const CyberFrame: React.FC<{
       className={`relative border bg-[rgba(5,10,15,0.45)] backdrop-blur-md rounded transition-all duration-300 flex flex-col overflow-hidden group ${palette.border} ${className}`}
       style={{
         boxShadow: `0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 10px ${palette.glowLight}`,
+        height: isCollapsed ? '34px' : (height !== undefined ? `${height}px` : undefined),
+        minHeight: isCollapsed ? '34px' : undefined,
       }}
     >
       {/* Tech corner notches */}
       <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
       <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
-      <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
-      <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+      {!isCollapsed && (
+        <>
+          <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+          <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-current opacity-40 group-hover:opacity-100 transition-opacity" style={{ color: palette.primary }}></div>
+        </>
+      )}
 
       {/* Panel header */}
       {(title || subTitle) && (
         <div 
-          onClick={onHeaderClick}
-          className={`px-3 py-1.5 border-b flex items-center justify-between bg-black/40 cursor-default select-none ${palette.border} text-xs font-mono`}
+          onClick={toggleCollapse}
+          className={`px-3 py-1.5 border-b flex items-center justify-between bg-black/40 ${collapsible ? 'cursor-pointer hover:bg-black/60' : 'cursor-default'} select-none ${palette.border} text-xs font-mono`}
         >
           <div className="flex items-center space-x-2">
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: palette.primary }}></span>
@@ -204,9 +276,20 @@ export const CyberFrame: React.FC<{
               {title}
             </span>
           </div>
-          {subTitle && (
-            <span className="text-[10px] opacity-40 font-mono tracking-widest">{subTitle}</span>
-          )}
+          <div className="flex items-center space-x-3">
+            {subTitle && (
+              <span className="text-[10px] opacity-40 font-mono tracking-widest">{subTitle}</span>
+            )}
+            {collapsible && (
+              <button 
+                type="button"
+                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                title={isCollapsed ? "Expand Panel" : "Collapse Panel"}
+              >
+                {isCollapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -214,9 +297,25 @@ export const CyberFrame: React.FC<{
       <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#fff_1px,transparent_1px)]" style={{ backgroundSize: '16px 16px' }} />
 
       {/* Inner Content */}
-      <div className="relative p-3 flex-1 flex flex-col overflow-auto">
+      <div className={`relative p-3 flex-1 flex flex-col overflow-auto ${isCollapsed ? 'hidden' : ''}`}>
         {children}
       </div>
+
+      {/* Resizing Handle */}
+      {resizable && !isCollapsed && (
+        <div 
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          className="absolute bottom-0 left-0 right-0 h-2 bg-slate-950/20 hover:bg-current/10 border-t border-slate-900/40 cursor-ns-resize flex items-center justify-center transition-all group/resize z-10"
+          style={{ color: palette.primary }}
+          title="Drag to resize panel height"
+        >
+          <div className="w-8 h-1 flex flex-col items-center justify-between gap-[1px] opacity-30 group-hover/resize:opacity-100 transition-opacity">
+            <div className="w-full h-[1px] bg-current" />
+            <div className="w-full h-[1px] bg-current" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

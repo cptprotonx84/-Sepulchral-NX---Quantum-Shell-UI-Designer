@@ -145,3 +145,32 @@ initialize in a silent state on launch.
 ========================================================================
              [ SEPULCHRAL LABS // DESIGN BLUEPRINT ARCHIVED ]
 ========================================================================
+
+------------------------------------------------------------------------
+7. SECURE AI SYNTHESIS & API ENDPOINTS
+------------------------------------------------------------------------
+
+Sepulchral Labs features an AI-Powered Module Synthesizer that generates 
+custom futuristic grid-aligned widgets from natural language prompts:
+
+* API Endpoint: 
+  `POST /api/generate-module`
+  This route takes a module idea and translates it into modular grid-aligned 
+  JSON specifications (e.g. name, type, grid coordinates, dimensions, glow 
+  colors, and visual icons).
+
+* Secure Environment Configuration:
+  - All AI requests are proxied securely on the server.
+  - The Gemini API Key is stored exclusively as `GEMINI_API_KEY` on the 
+    backend environment and is NEVER sent or exposed to the client browser.
+  - To configure locally, copy `.env.example` to a new file named `.env` and 
+    define your API key there:
+      GEMINI_API_KEY=your_actual_api_key_here
+
+* Zero-Dependency Local Fallback Engine:
+  - If the `GEMINI_API_KEY` environment variable is not defined or is 
+    otherwise unavailable, the system automatically engages an advanced 
+    local heuristic synthesizer fallback.
+  - This ensures 100% offline availability and full functionality even 
+    without remote API connections, preserving the user experience in all environments.
+

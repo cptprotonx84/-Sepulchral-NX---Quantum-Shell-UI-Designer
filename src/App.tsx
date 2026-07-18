@@ -8,6 +8,7 @@ import { TerminalTheme, GridConfig, ModularWidget, VectorShape, ColorGradingConf
 import { TerminalOverlay, THEME_PALETTES, CyberFrame } from './components/TerminalOverlay';
 import { ControlPanel } from './components/ControlPanel';
 import { GridDesigner } from './components/GridDesigner';
+import { DiagnosticHUD } from './components/DiagnosticHUD';
 import { VectorEditor } from './components/VectorEditor';
 import { ScriptingConsole } from './components/ScriptingConsole';
 import { IconIntegrator } from './components/IconIntegrator';
@@ -31,6 +32,16 @@ export default function App() {
   const [acousticFeedback, setAcousticFeedback] = useState<boolean>(false);
   const [displayMode, setDisplayMode] = useState<'single' | 'dual' | 'triple'>('dual');
   
+  // Real-time panel visibility and layout state
+  const [layoutConfig, setLayoutConfig] = useState({
+    showControlPanel: true,
+    showGridDesigner: true,
+    showVectorEditor: true,
+    showScriptingConsole: true,
+    showIconIntegrator: true,
+    showExportSyncPanel: true,
+  });
+
   // Real-time grid state
   const [gridConfig, setGridConfig] = useState<GridConfig>({
     columns: 8,
@@ -201,6 +212,38 @@ export default function App() {
 
         {/* Header volume, acoustics and display setups */}
         <div className="flex items-center space-x-3 w-full md:w-auto justify-end relative z-10">
+          {/* Workspace Layout Quick Toggles */}
+          <div className="flex items-center space-x-1 bg-black/40 border border-slate-800/60 p-1 rounded">
+            <button
+              onClick={() => {
+                soundEngine.playSwitch();
+                setLayoutConfig(prev => ({ ...prev, showControlPanel: !prev.showControlPanel }));
+              }}
+              className={`px-2 py-1 rounded text-[9px] font-bold tracking-wide uppercase transition-colors cursor-pointer ${
+                layoutConfig.showControlPanel
+                  ? 'text-emerald-400 bg-emerald-950/20 border border-emerald-800/40'
+                  : 'text-slate-500 hover:text-slate-300 border border-transparent'
+              }`}
+              title="Toggle Left Sidebar"
+            >
+              SIDEBAR
+            </button>
+            <button
+              onClick={() => {
+                soundEngine.playSwitch();
+                setLayoutConfig(prev => ({ ...prev, showGridDesigner: !prev.showGridDesigner }));
+              }}
+              className={`px-2 py-1 rounded text-[9px] font-bold tracking-wide uppercase transition-colors cursor-pointer ${
+                layoutConfig.showGridDesigner
+                  ? 'text-emerald-400 bg-emerald-950/20 border border-emerald-800/40'
+                  : 'text-slate-500 hover:text-slate-300 border border-transparent'
+              }`}
+              title="Toggle Grid Canvas"
+            >
+              GRID
+            </button>
+          </div>
+
           {/* Quick Sound Toggle Switch */}
           <button
             onClick={toggleSoundHum}
@@ -215,148 +258,177 @@ export default function App() {
           </button>
         </div>
       </header>
-
-      {/* Audio Permit Ambient warning alert */}
-      {!acousticFeedback && (
-        <div 
-          className="relative bg-black border-b border-amber-500/20 px-6 py-2.5 text-amber-500 text-[10px] tracking-wide animate-pulse font-mono flex items-center justify-center space-x-3 shadow-lg select-none"
-        >
-          {/* Yellow/Amber hazard-striped left/right accents */}
-          <div className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 text-amber-500/40 font-bold select-none tracking-tighter">
-            /// /// ///
-          </div>
-          <div className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 text-amber-500/40 font-bold select-none tracking-tighter">
-            /// /// ///
-          </div>
-          
-          <span className="flex items-center space-x-2 bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded">
-            <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping mr-1"></span>
-            <span className="font-bold">⚠️ COGNITIVE ACOUSTIC OFFLINE:</span>
-            <span className="text-slate-300">CLICK "ACOUSTIC MUTED" TO ENGAGE AMBIENT REACTOR HUM & MECHANICAL ACTUATORS.</span>
-          </span>
-        </div>
-      )}
-
-      {/* 3. CORE MULTI-DISPLAY INTERACTIVE GRID LAYOUT */}
-      <main className="flex-1 p-4 grid grid-cols-1 xl:grid-cols-4 gap-4 overflow-y-auto">
-        
-        {/* DISPLAY BLOCK 1 (Left Sidebar): Analog Controls & Calibration parameters */}
-        <section className="xl:col-span-1 flex flex-col h-full space-y-4">
-          <CyberFrame 
-            theme={theme}
-            title="SYSTEM GEOMETRY REGULATOR"
-            subTitle="CONTROL_DECK"
-            className="flex-1"
-          >
-            <ControlPanel 
-              theme={theme}
-              setTheme={setTheme}
-              gridConfig={gridConfig}
-              setGridConfig={setGridConfig}
-              colorConfig={colorConfig}
-              setColorConfig={setColorConfig}
-              acousticFeedback={acousticFeedback}
-              setAcousticFeedback={setAcousticFeedback}
-              displayMode={displayMode}
-              setDisplayMode={setDisplayMode}
-            />
-          </CyberFrame>
-        </section>
-
-        {/* DISPLAY BLOCK 2 & 3 (Central workspace): Grid matrix & Prototyping deck */}
-        <section className="xl:col-span-3 flex flex-col space-y-4 h-full">
-          
-          {/* A. Central grid stage component */}
-          <CyberFrame 
-            theme={theme}
-            title={palette.title}
-            subTitle="GPU_ACCELERATED_WORKSPACE"
-            className="flex-1 min-h-[460px] xl:min-h-0"
-          >
-            <GridDesigner 
-              theme={theme}
-              gridConfig={gridConfig}
-              widgets={widgets}
-              setWidgets={setWidgets}
-              acousticFeedback={acousticFeedback}
-              selectedIconName={selectedIconName}
-            />
-          </CyberFrame>
-
-          {/* B. Dual ancillary workspaces: Vector Editor & Python Automation Terminal */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            
-            {/* Vector path manipulation */}
-            <CyberFrame 
-              theme={theme}
-              title="INSTRUMENT GRAPHIC SHAPER"
-              subTitle="7X9_MODULAR_GLYPHS"
-              className="min-h-[300px] lg:min-h-0"
-            >
-              <VectorEditor 
-                theme={theme}
-                colorConfig={colorConfig}
-                shapes={shapes}
-                setShapes={setShapes}
-                acousticFeedback={acousticFeedback}
-              />
-            </CyberFrame>
-
-            {/* Python console scripting system */}
-            <CyberFrame 
-              theme={theme}
-              title="AUTOMATION SCRIPTING CONSOLE"
-              subTitle="CONTROL_SANDBOX"
-              className="min-h-[300px] lg:min-h-0"
-            >
-              <ScriptingConsole 
-                theme={theme}
-                gridConfig={gridConfig}
-                setGridConfig={setGridConfig}
-                widgets={widgets}
-                setWidgets={setWidgets}
-                shapes={shapes}
-                setShapes={setShapes}
-                acousticFeedback={acousticFeedback}
-              />
-            </CyberFrame>
-          </div>
-
-          {/* C. Secondary ancillary row: Icon Integrator & Export target syncer */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            
-            {/* Custom Icon Catalog integrations */}
-            <CyberFrame 
-              theme={theme}
-              title="VECTOR GLYPH COMPILER"
-              subTitle="CATALOG_REGISTRY"
-              className="min-h-[280px]"
-            >
-              <IconIntegrator 
-                theme={theme}
-                acousticFeedback={acousticFeedback}
-                onSelectIcon={setSelectedIconName}
-              />
-            </CyberFrame>
-
-            {/* Blueprints Exporter & Linux/Windows target syncer */}
-            <CyberFrame 
-              theme={theme}
-              title="BLUEPRINT DEPLOYMENT"
-              subTitle="SYNCHRONICITY_DECK"
-              className="min-h-[280px]"
-            >
-              <ExportSyncPanel 
-                theme={theme}
-                gridConfig={gridConfig}
-                widgets={widgets}
-                shapes={shapes}
-                acousticFeedback={acousticFeedback}
-              />
-            </CyberFrame>
-          </div>
-        </section>
-      </main>
+ 
+       {/* Audio Permit Ambient warning alert */}
+       {!acousticFeedback && (
+         <div 
+           className="relative bg-black border-b border-amber-500/20 px-6 py-2.5 text-amber-500 text-[10px] tracking-wide animate-pulse font-mono flex items-center justify-center space-x-3 shadow-lg select-none"
+         >
+           {/* Yellow/Amber hazard-striped left/right accents */}
+           <div className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 text-amber-500/40 font-bold select-none tracking-tighter">
+             /// /// ///
+           </div>
+           <div className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 text-amber-500/40 font-bold select-none tracking-tighter">
+             /// /// ///
+           </div>
+           
+           <span className="flex items-center space-x-2 bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded">
+             <span className="w-2 h-2 bg-amber-500 rounded-full animate-ping mr-1"></span>
+             <span className="font-bold">⚠️ COGNITIVE ACOUSTIC OFFLINE:</span>
+             <span className="text-slate-300">CLICK "ACOUSTIC MUTED" TO ENGAGE AMBIENT REACTOR HUM & MECHANICAL ACTUATORS.</span>
+           </span>
+         </div>
+       )}
+ 
+       {/* 3. CORE MULTI-DISPLAY INTERACTIVE GRID LAYOUT */}
+       <main className={`flex-1 p-4 grid gap-4 overflow-y-auto ${layoutConfig.showControlPanel ? 'grid-cols-1 xl:grid-cols-4' : 'grid-cols-1'}`}>
+         
+         {/* DISPLAY BLOCK 1 (Left Sidebar): Analog Controls & Calibration parameters */}
+         {layoutConfig.showControlPanel && (
+           <section className="xl:col-span-1 flex flex-col h-full space-y-4">
+             <CyberFrame 
+               theme={theme}
+               title="SYSTEM GEOMETRY REGULATOR"
+               subTitle="CONTROL_DECK"
+               className="flex-1"
+               defaultHeight={600}
+             >
+               <ControlPanel 
+                 theme={theme}
+                 setTheme={setTheme}
+                 gridConfig={gridConfig}
+                 setGridConfig={setGridConfig}
+                 colorConfig={colorConfig}
+                 setColorConfig={setColorConfig}
+                 acousticFeedback={acousticFeedback}
+                 setAcousticFeedback={setAcousticFeedback}
+                 displayMode={displayMode}
+                 setDisplayMode={setDisplayMode}
+                 layoutConfig={layoutConfig}
+                 setLayoutConfig={setLayoutConfig}
+               />
+             </CyberFrame>
+           </section>
+         )}
+ 
+         {/* DISPLAY BLOCK 2 & 3 (Central workspace): Grid matrix & Prototyping deck */}
+         <section className={`${layoutConfig.showControlPanel ? 'xl:col-span-3' : 'xl:col-span-1'} flex flex-col space-y-4 h-full`}>
+           
+           {/* A. Central grid stage component */}
+           {layoutConfig.showGridDesigner && (
+             <CyberFrame 
+               theme={theme}
+               title={palette.title}
+               subTitle="GPU_ACCELERATED_WORKSPACE"
+               className="flex-1 min-h-[460px] xl:min-h-0"
+               defaultHeight={460}
+             >
+               <GridDesigner 
+                 theme={theme}
+                 gridConfig={gridConfig}
+                 widgets={widgets}
+                 setWidgets={setWidgets}
+                 acousticFeedback={acousticFeedback}
+                 selectedIconName={selectedIconName}
+               />
+               <DiagnosticHUD 
+                 theme={theme}
+                 acousticFeedback={acousticFeedback}
+                 className="absolute inset-0 pointer-events-none"
+               />
+             </CyberFrame>
+           )}
+ 
+           {/* B. Dual ancillary workspaces: Vector Editor & Python Automation Terminal */}
+           {(layoutConfig.showVectorEditor || layoutConfig.showScriptingConsole) && (
+             <div className={`grid gap-4 ${layoutConfig.showVectorEditor && layoutConfig.showScriptingConsole ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+               
+               {/* Vector path manipulation */}
+               {layoutConfig.showVectorEditor && (
+                 <CyberFrame 
+                   theme={theme}
+                   title="INSTRUMENT GRAPHIC SHAPER"
+                   subTitle="7X9_MODULAR_GLYPHS"
+                   className="min-h-[300px] lg:min-h-0"
+                   defaultHeight={285}
+                 >
+                   <VectorEditor 
+                     theme={theme}
+                     colorConfig={colorConfig}
+                     shapes={shapes}
+                     setShapes={setShapes}
+                     acousticFeedback={acousticFeedback}
+                   />
+                 </CyberFrame>
+               )}
+ 
+               {/* Python console scripting system */}
+               {layoutConfig.showScriptingConsole && (
+                 <CyberFrame 
+                   theme={theme}
+                   title="AUTOMATION SCRIPTING CONSOLE"
+                   subTitle="CONTROL_SANDBOX"
+                   className="min-h-[300px] lg:min-h-0"
+                   defaultHeight={285}
+                 >
+                   <ScriptingConsole 
+                     theme={theme}
+                     gridConfig={gridConfig}
+                     setGridConfig={setGridConfig}
+                     widgets={widgets}
+                     setWidgets={setWidgets}
+                     shapes={shapes}
+                     setShapes={setShapes}
+                     acousticFeedback={acousticFeedback}
+                   />
+                 </CyberFrame>
+               )}
+             </div>
+           )}
+ 
+           {/* C. Secondary ancillary row: Icon Integrator & Export target syncer */}
+           {(layoutConfig.showIconIntegrator || layoutConfig.showExportSyncPanel) && (
+             <div className={`grid gap-4 ${layoutConfig.showIconIntegrator && layoutConfig.showExportSyncPanel ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+               
+               {/* Custom Icon Catalog integrations */}
+               {layoutConfig.showIconIntegrator && (
+                 <CyberFrame 
+                   theme={theme}
+                   title="VECTOR GLYPH COMPILER"
+                   subTitle="CATALOG_REGISTRY"
+                   className="min-h-[280px]"
+                   defaultHeight={285}
+                 >
+                   <IconIntegrator 
+                     theme={theme}
+                     acousticFeedback={acousticFeedback}
+                     onSelectIcon={setSelectedIconName}
+                   />
+                 </CyberFrame>
+               )}
+ 
+               {/* Blueprints Exporter & Linux/Windows target syncer */}
+               {layoutConfig.showExportSyncPanel && (
+                 <CyberFrame 
+                   theme={theme}
+                   title="BLUEPRINT DEPLOYMENT"
+                   subTitle="SYNCHRONICITY_DECK"
+                   className="min-h-[280px]"
+                   defaultHeight={285}
+                 >
+                   <ExportSyncPanel 
+                     theme={theme}
+                     gridConfig={gridConfig}
+                     widgets={widgets}
+                     shapes={shapes}
+                     acousticFeedback={acousticFeedback}
+                   />
+                 </CyberFrame>
+               )}
+             </div>
+           )}
+         </section>
+       </main>
 
       {/* 4. FUTURISTIC RETRO STAMP FOOTER */}
       <footer className="border-t border-slate-900 bg-black/90 px-4 py-2.5 text-center text-[10px] text-slate-500 flex flex-col md:flex-row items-center justify-between font-mono">
